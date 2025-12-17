@@ -3,8 +3,8 @@ const express = require("express");
 const app = express();
 const port = 3000;
 
-app.get("/user", (req, res) => {
-    console.log(req.query);  // this is how get query params
+app.get("/user/:userID/:name", (req, res) => {
+    console.log(req.params);  // this is how get query params
     res.send({ firstName: "Shubhank", lastName: "Thakur" });
 });
 
