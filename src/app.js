@@ -35,3 +35,9 @@ app.use("/" ,(req , res) =>{
 app.listen(port, ()=>{
     console.log(`Server is running at port : ${port}`);
 })
+
+
+// route can be 
+// /ab?c  means ac or abc both works
+// /ab+c  means abbbc or abc both
+// Many more but not uses in real world projects.
