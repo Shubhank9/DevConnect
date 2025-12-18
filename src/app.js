@@ -6,6 +6,33 @@ const User = require("./models/user");
 
 app.use(express.json());   // this is a middleware provide by express to convert json data into js object.
 
+
+// /user : to search a user by an emailId.
+app.get("/user", async (req, res) => {
+
+    const email = req.body;
+
+    try {
+        const user = await User.findOne(email);
+        res.status(200).send(user);
+    } catch (err) {
+        console.log("Unable to fetch the User error is : ", err.message);
+    }
+})
+
+
+// /feed : to fetch all the documents form the database.
+app.get("/feed", async (req, res) => {
+
+    try {
+        const users = await User.find({});
+        res.status(200).send(users);
+    } catch (err) {
+        console.log("Unable to fetch the feed error is : ", err.message);
+    }
+})
+
+
 app.post("/signup", async (req, res) => {
 
     // creating a new instance of User model
@@ -17,7 +44,7 @@ app.post("/signup", async (req, res) => {
     } catch (err) {
         res.status(400).send("Error saving user : ", err.message);
     }
-})
+});
 
 connectDB()
     .then(() => {
