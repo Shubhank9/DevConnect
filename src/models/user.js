@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
     {
@@ -16,11 +17,21 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             required: true,
             unique: true,
-            trim: true
+            trim: true,
+            validate(value) {
+                if (!validator.isEmail(value)) {
+                    throw new Error("Invalid email address: " + value);
+                }
+            }
         },
         password: {
             type: String,
             required: true,
+            validate(value) {
+                if(!validator.isStrongPassword(value)){
+                    throw new Error("Enter Strong Password: " + value);
+                }
+            }
         },
         age: {
             type: Number,
@@ -35,7 +46,13 @@ const userSchema = new mongoose.Schema(
             }
         },
         photoUrl: {
-            type: String
+            type: String,
+            default: "https://media.istockphoto.com/id/1726213993/vector/default-avatar-profile-placeholder-abstract-vector-silhouette-element.jpg?s=612x612&w=0&k=20&c=nYlk0j076CBZ5xGCCaVXtISYGK2SzXRwuQBXPkfmMX4=",
+            validate(value) {
+                if (!validator.isURL(value)) {
+                    throw new Error("Invalid Photo URL: " + value);
+                }
+            }
         },
         about: {
             type: String,
