@@ -7,6 +7,36 @@ const User = require("./models/user");
 app.use(express.json());   // this is a middleware provide by express to convert json data into js object.
 
 
+// /user : updated user data
+app.patch("/user", async (req, res) => {
+    const userId = req.body.userId;
+    const data = req.body;
+
+    try {
+        const user = await User.findByIdAndUpdate(userId, data, {
+            returnDocument: "after"
+        });
+        console.log(user);
+        res.status(200).send("User Updated Successfully");
+    } catch (err) {
+        console.log("Unable to Delete the User error is : ", err.message);
+    }
+})
+// $set, $push, $elemMatch, arrayFilter, $pull 
+
+
+// /user : delete user by _id
+app.delete("/user", async (req, res) => {
+    const userId = req.body.userId;
+    try {
+        await User.findByIdAndDelete(userId);
+        res.status(200).send("User deleted successfully");
+    } catch (err) {
+        console.log("Unable to fetch the User error is : ", err.message);
+    }
+})
+
+
 // /user : to search a user by an emailId.
 app.get("/user", async (req, res) => {
 
@@ -36,7 +66,7 @@ app.get("/feed", async (req, res) => {
 app.post("/signup", async (req, res) => {
 
     // creating a new instance of User model
-    const user = new User(req.body);
+    // const user = new User(req.body);
 
     try {
         await user.save();
