@@ -9,21 +9,39 @@ app.use(express.json());   // this is a middleware provide by express to convert
 
 // /user : updated user data
 app.patch("/user", async (req, res) => {
-    const userId = req.body.userId;
+    const userId = req.params?.userId;
     const data = req.body;
 
     try {
+        const ALLOWED_UPDATES = [
+            "userId",
+            "photoUrl",
+            "about",
+            "gender",
+            "age",
+            "skills",
+        ];
+
+        const isUpdateAllowed = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k));
+
+        if (!isUpdateAllowed) {
+            throw new Error("Update not allowed");
+        }
+
+        if (data?.skills.length > 10) {
+            throw new Error("Skills cannot be mode than 10");
+        }
+
         const user = await User.findByIdAndUpdate(userId, data, {
-            returnDocument: "after"
+            returnDocument: "after",
+            runValidators: true
         });
         console.log(user);
         res.status(200).send("User Updated Successfully");
     } catch (err) {
-        console.log("Unable to Delete the User error is : ", err.message);
+        console.log("Unable to Delete the User error is : " + err.message);
     }
 })
-// $set, $push, $elemMatch, arrayFilter, $pull 
-
 
 // /user : delete user by _id
 app.delete("/user", async (req, res) => {
@@ -32,7 +50,7 @@ app.delete("/user", async (req, res) => {
         await User.findByIdAndDelete(userId);
         res.status(200).send("User deleted successfully");
     } catch (err) {
-        console.log("Unable to fetch the User error is : ", err.message);
+        console.log("Unable to fetch the User error is : " + err.message);
     }
 })
 
@@ -46,7 +64,7 @@ app.get("/user", async (req, res) => {
         const user = await User.findOne(email);
         res.status(200).send(user);
     } catch (err) {
-        console.log("Unable to fetch the User error is : ", err.message);
+        console.log("Unable to fetch the User error is : " + err.message);
     }
 })
 
@@ -58,7 +76,7 @@ app.get("/feed", async (req, res) => {
         const users = await User.find({});
         res.status(200).send(users);
     } catch (err) {
-        console.log("Unable to fetch the feed error is : ", err.message);
+        console.log("Unable to fetch the feed error is : " + err.message);
     }
 })
 
@@ -66,13 +84,13 @@ app.get("/feed", async (req, res) => {
 app.post("/signup", async (req, res) => {
 
     // creating a new instance of User model
-    // const user = new User(req.body);
+    const user = new User(req.body);
 
     try {
         await user.save();
         res.status(200).send("User added successully");
     } catch (err) {
-        res.status(400).send("Error saving user : ", err.message);
+        res.status(400).send("Error saving user : " + err.message);
     }
 });
 
