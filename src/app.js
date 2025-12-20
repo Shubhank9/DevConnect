@@ -3,9 +3,13 @@ const connectDB = require("./config/database");
 const app = express();
 const port = 7777;
 const User = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 app.use(express.json());   // this is a middleware provide by express to convert json data into js object.
-
+app.use(cookieParser());   // this is a middleware provided by cookie-parser (developed by express team) to read a cookie.
 
 // /user : updated user data
 app.patch("/user", async (req, res) => {
@@ -78,19 +82,84 @@ app.get("/feed", async (req, res) => {
     } catch (err) {
         console.log("Unable to fetch the feed error is : " + err.message);
     }
+});
+
+
+app.get("/profile", async (req, res) => {
+    try {
+        const cookies = req.cookies;
+        const { token } = cookies;
+        if (!token) {
+            throw new Error("Invalid Token");
+        }
+        // Validate my token
+        const decodedMessage = await jwt.verify(token, "Dev@Connect$0905");
+        const { _id } = decodedMessage;
+
+        // Fetching user details
+        const user = await User.findById(_id);
+        if (!user) {
+            throw new Error("User does not exist");
+        }
+        res.status(200).send({
+            "success": true,
+            "message": "Profile fetched successfully",
+            "data": {
+                "user": user,
+            }
+        });
+    } catch (err) {
+        res.status(400).send("Error : " + err.message);
+    }
 })
+
+app.post("/login", async (req, res) => {
+    try {
+        const { emailId, password } = req.body;
+
+        const user = await User.findOne({ emailId: emailId });
+        if (!user) {
+            throw new Error("Invalid credentials")
+        }
+        const isPasswordValid = await bcrypt.compare(password, user?.password);
+
+        if (isPasswordValid) {
+            // Create a JWT Token.
+            const token = await jwt.sign({ _id: user?._id }, "Dev@Connect$0905");
+
+            // Add the token to cookie ans send the response back to the user.
+            res.cookie("token", token);
+            res.status(200).send("Login Successfully!!");
+        } else {
+            throw new Error("Invalid credentials");
+        }
+    } catch (err) {
+        res.status(400).send("Error : " + err.message);
+    }
+});
 
 
 app.post("/signup", async (req, res) => {
 
-    // creating a new instance of User model
-    const user = new User(req.body);
+    const { firstName, lastName, emailId, password } = req.body;
 
     try {
+        //Validate data.
+        validateSignUpData(req);
+
+        // Encrypt the password.
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Saving user in db.
+        const user = new User({
+            firstName, lastName, password: passwordHash, emailId
+        });
         await user.save();
-        res.status(200).send("User added successully");
-    } catch (err) {
-        res.status(400).send("Error saving user : " + err.message);
+
+        res.status(200).send("User added successully!!");
+    }
+    catch (err) {
+        res.status(400).send("Error : " + err.message);
     }
 });
 
