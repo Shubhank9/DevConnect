@@ -6,7 +6,6 @@ const User = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
-const jwt = require("jsonwebtoken");
 const { userAuth } = require("./middlewares/auth");
 
 app.use(express.json());   // this is a middleware provide by express to convert json data into js object.
@@ -106,16 +105,15 @@ app.post("/login", async (req, res) => {
         const { emailId, password } = req.body;
 
         const user = await User.findOne({ emailId: emailId });
+        console.log(user.validatePassword);
         if (!user) {
             throw new Error("Invalid credentials")
         }
-        const isPasswordValid = await bcrypt.compare(password, user?.password);
+        const isPasswordValid = await user.validatePassword(password);
 
-        if (isPasswordValid) { 
+        if (isPasswordValid) {
             // Create a JWT Token.
-            const token = await jwt.sign({ _id: user?._id }, "Dev@Connect$0905", {
-                expiresIn: "1d",
-            });
+            const token = await user.getJWT();
 
             // Add the token to cookie ans send the response back to the user.
             res.cookie("token", token, {
