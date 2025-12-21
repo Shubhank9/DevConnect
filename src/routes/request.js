@@ -9,4 +9,4 @@ requestRouter.post("/sendConnectionRequest", userAuth, async (req, res) => {
     res.send(user.firstName + "sent the connect request!")
 });
 
-module.exports = requestRouter;
+module.exports = requestRouter; 
