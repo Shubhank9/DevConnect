@@ -7,6 +7,7 @@ const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/auth");
 
 app.use(express.json());   // this is a middleware provide by express to convert json data into js object.
 app.use(cookieParser());   // this is a middleware provided by cookie-parser (developed by express team) to read a cookie.
@@ -85,22 +86,9 @@ app.get("/feed", async (req, res) => {
 });
 
 
-app.get("/profile", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
     try {
-        const cookies = req.cookies;
-        const { token } = cookies;
-        if (!token) {
-            throw new Error("Invalid Token");
-        }
-        // Validate my token
-        const decodedMessage = await jwt.verify(token, "Dev@Connect$0905");
-        const { _id } = decodedMessage;
-
-        // Fetching user details
-        const user = await User.findById(_id);
-        if (!user) {
-            throw new Error("User does not exist");
-        }
+        const user = req?.user;
         res.status(200).send({
             "success": true,
             "message": "Profile fetched successfully",
@@ -111,7 +99,7 @@ app.get("/profile", async (req, res) => {
     } catch (err) {
         res.status(400).send("Error : " + err.message);
     }
-})
+});
 
 app.post("/login", async (req, res) => {
     try {
@@ -123,12 +111,16 @@ app.post("/login", async (req, res) => {
         }
         const isPasswordValid = await bcrypt.compare(password, user?.password);
 
-        if (isPasswordValid) {
+        if (isPasswordValid) { 
             // Create a JWT Token.
-            const token = await jwt.sign({ _id: user?._id }, "Dev@Connect$0905");
+            const token = await jwt.sign({ _id: user?._id }, "Dev@Connect$0905", {
+                expiresIn: "1d",
+            });
 
             // Add the token to cookie ans send the response back to the user.
-            res.cookie("token", token);
+            res.cookie("token", token, {
+                expires: new Date(Date.now() + 8 * 3600000),
+            });
             res.status(200).send("Login Successfully!!");
         } else {
             throw new Error("Invalid credentials");
