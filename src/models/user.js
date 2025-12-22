@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
             required: true,
             validate(value) {
                 if (!validator.isStrongPassword(value)) {
-                    throw new Error("Enter Strong Password: " + value);
+                    throw new Error("Please Enter Strong Password");
                 }
             }
         },

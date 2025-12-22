@@ -23,7 +23,11 @@ authRouter.post("/signup", async (req, res) => {
         });
         await user.save();
 
-        res.status(200).send("User added successully!!");
+        res.status(200).json({
+            success: true,
+            message: "User registered successfully!!",
+            data: user
+        });
     }
     catch (err) {
         res.status(400).send("Error : " + err.message);
@@ -35,7 +39,6 @@ authRouter.post("/login", async (req, res) => {
         const { emailId, password } = req.body;
 
         const user = await User.findOne({ emailId: emailId });
-        console.log(user.validatePassword);
         if (!user) {
             throw new Error("Invalid credentials")
         }
@@ -49,12 +52,16 @@ authRouter.post("/login", async (req, res) => {
             res.cookie("token", token, {
                 expires: new Date(Date.now() + 8 * 3600000),
             });
-            res.status(200).send("Login Successfully!!");
+            res.status(200).json({
+                success: true,
+                message: "Login Successfully!!",
+                data: user
+            });
         } else {
             throw new Error("Invalid credentials");
         }
     } catch (err) {
-        res.status(400).send("Error : " + err.message);
+        res.status(400).send(err.message);
     }
 });
 

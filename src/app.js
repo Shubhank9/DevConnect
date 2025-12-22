@@ -22,7 +22,7 @@ connectDB()
         })
     })
     .catch(() => {
-        console.error("Database cannot br connected!!...")
+        console.error("Database cannot be connected!!...")
     });
 
 
