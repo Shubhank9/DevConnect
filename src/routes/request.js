@@ -60,7 +60,7 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
         try {
             const loggedInUser = req.user;
             const { status, requestId } = req.params;
-
+ 
             const allowedStatus = ["accepted", "rejected"];
             if (!allowedStatus.includes(status)) {
                 return res.status(400).json({
